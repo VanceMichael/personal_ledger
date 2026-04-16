@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ledger.mapper.AccountMapper">
+
+    <resultMap id="AccountWithCategoryMap" type="com.ledger.entity.Account">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="type" property="type"/>
+        <result column="amount" property="amount"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="remark" property="remark"/>
+        <result column="date" property="date"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="category_icon" property="categoryIcon"/>
+    </resultMap>
+
+    <select id="listWithCategory" resultMap="AccountWithCategoryMap">
+        SELECT a.*, c.name as category_name, c.icon as category_icon
+        FROM account a
+        LEFT JOIN category c ON a.category_id = c.id
+        WHERE a.user_id = #{userId}
+        <if test="startDate != null and startDate != ''">
+            AND a.date &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND a.date &lt;= #{endDate}
+        </if>
+        <if test="type != null and type != ''">
+            AND a.type = #{type}
+        </if>
+        <if test="categoryId != null">
+            AND a.category_id = #{categoryId}
+        </if>
+        ORDER BY a.date DESC, a.create_time DESC
+    </select>
+
+    <select id="getCategoryStatistics" resultType="java.util.Map">
+        SELECT c.name, c.icon, SUM(a.amount) as amount
+        FROM account a
+        LEFT JOIN category c ON a.category_id = c.id
+        WHERE a.user_id = #{userId}
+        AND DATE_FORMAT(a.date, '%Y-%m') = #{month}
+        AND a.type = #{type}
+        GROUP BY c.id, c.name, c.icon
+        ORDER BY amount DESC
+    </select>
+
+    <select id="getTrendStatistics" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(a.date, '%m') as month,
+            SUM(CASE WHEN a.type = 'income' THEN a.amount ELSE 0 END) as income,
+            SUM(CASE WHEN a.type = 'expense' THEN a.amount ELSE 0 END) as expense
+        FROM account a
+        WHERE a.user_id = #{userId}
+        AND DATE_FORMAT(a.date, '%Y') = #{year}
+        GROUP BY DATE_FORMAT(a.date, '%m')
+        ORDER BY month
+    </select>
+
+    <select id="getYearlyStatistics" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN a.type = 'income' THEN a.amount ELSE 0 END) as totalIncome,
+            SUM(CASE WHEN a.type = 'expense' THEN a.amount ELSE 0 END) as totalExpense
+        FROM account a
+        WHERE a.user_id = #{userId}
+        AND DATE_FORMAT(a.date, '%Y') = #{year}
+    </select>
+
+</mapper>

@@ -1,0 +1,19 @@
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+.mr-1 {
+  margin-right: 4px;
+}
+
+.ml-20 {
+  margin-left: 20px;
+}
